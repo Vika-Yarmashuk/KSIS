@@ -1,0 +1,18 @@
+﻿@using Millioner.Models
+@model ProfileViewModel
+@{
+    ViewData["Title"] = $"Профиль {Model.UserName}";
+}
+<div class="container mt-4">
+    <div class="card shadow rounded-4 border-0">
+        <div class="card-header bg-orange text-white text-center rounded-top-4 py-3">
+            <h2>👤 Профиль игрока</h2>
+        </div>
+        <div class="card-body p-4 text-center">
+            <div class="display-1 mb-3">@Model.AvatarPath</div>
+            <h3>@Model.UserName</h3>
+            <p><strong>🏆 Общий счёт:</strong> @Model.TotalScore</p>
+            <p><strong>📅 Регистрация:</strong> @Model.RegistrationDate.ToShortDateString()</p>
+        </div>
+    </div>
+</div>

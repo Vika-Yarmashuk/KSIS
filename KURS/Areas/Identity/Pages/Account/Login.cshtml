@@ -1,0 +1,48 @@
+﻿@page
+@{
+    Layout = "/Areas/Identity/Pages/Shared/_Layout.cshtml";
+}
+
+@using Millioner.Models
+@model Millioner.Areas.Identity.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Вход в игру";
+}
+
+<div class="container mt-5 pt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-center py-4">
+                    <h3>🏆 Кто хочет стать миллионером? 🏆</h3>
+                    <p class="text-gold mb-0">Вход в интеллектуальную арену</p>
+                </div>
+                <div class="card-body p-4">
+                    <form id="loginForm" method="post">
+                        @Html.AntiForgeryToken() 
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                        <div class="mb-4">
+                            <label asp-for="Input.Name" class="form-label fw-bold">Ваше имя</label>
+                            <input asp-for="Input.Name" class="form-control" placeholder="Игровой псевдоним" />
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+                        <div class="mb-4">
+                            <label asp-for="Input.Password" class="form-label fw-bold">Пароль</label>
+                            <input asp-for="Input.Password" class="form-control" type="password" placeholder="••••••" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        <button id="loginSubmit" type="submit" class="btn btn-gold w-100 py-2 fw-bold">Войти в игру</button>
+                    </form>
+                </div>
+                <div class="text-center mt-3" >
+                    
+    <a asp-area="Identity" asp-page="/Account/Register"  class="btn btn-outline-register">Регистрация</a>
+</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+}

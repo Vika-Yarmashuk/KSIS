@@ -1,0 +1,94 @@
+﻿@page
+@{
+    Layout = "/Areas/Identity/Pages/Shared/_Layout.cshtml";
+}
+@using Millioner.Models
+@model Millioner.Areas.Identity.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="container mt-5 pt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header text-center py-4">
+                    <h3>🏆 СТАНЬ МИЛЛИОНЕРОМ 🏆</h3>
+                    <p class="text-gold mb-0">Зарегистрируйся и начни выигрывать</p>
+                </div>
+                <div class="card-body p-4">
+                    <form id="registerForm" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Name" class="form-label fw-bold">Игровое имя</label>
+                            <input asp-for="Input.Name" class="form-control" placeholder="Например: Знаток" />
+                            <span asp-validation-for="Input.Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.Password" class="form-label fw-bold">Пароль</label>
+                            <input asp-for="Input.Password" class="form-control" type="password" placeholder="••••••" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Input.ConfirmPassword" class="form-label fw-bold">Подтверждение пароля</label>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" type="password" placeholder="••••••" />
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+
+                        <!-- Блок выбора аватарки (5 картинок) -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold d-block">Выберите аватар</label>
+                            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                                @{
+                                    var avatars = new[] { "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png" };
+                                    for (int i = 0; i < avatars.Length; i++)
+                                    {
+                                        var avatarFile = avatars[i];
+                                        var avatarPath = "/images/avatars/" + avatarFile;
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input avatar-radio" type="radio" name="Input.AvatarPath" id="avatar_@i" value="@avatarPath" @(i == 0 ? "checked" : "")>
+                                                    <label class="form-check-label" for="avatar_@i">
+                                                        <img src="@avatarPath" width="60" height="60" style="border-radius: 50%; border: 2px solid transparent;" class="avatar-img" />
+                                                    </label>
+                                                </div>
+                                    }
+                                }
+                            </div>
+                            <span asp-validation-for="Input.AvatarPath" class="text-danger"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="btn btn-gold w-100 py-2 fw-bold">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+                    </form>
+                </div>
+                <div class="card-footer text-center py-3 bg-transparent border-top-0">
+                    <p class="mb-0">Уже есть аккаунт? <a asp-page="./Login" class="text-gold">Войти в игру →</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            // Подсветка выбранной аватарки (золотая рамка)
+            document.querySelectorAll('.avatar-radio').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.querySelectorAll('.avatar-img').forEach(img => {
+                        img.style.borderColor = 'transparent';
+                    });
+                    if (this.checked) {
+                        this.nextElementSibling.querySelector('.avatar-img').style.borderColor = '#ff8c00';
+                    }
+                });
+                // Если радио уже выбрано при загрузке, подсветить его
+                if (radio.checked) {
+                    radio.nextElementSibling.querySelector('.avatar-img').style.borderColor = '#ff8c00';
+                }
+            });
+        </script>
+}

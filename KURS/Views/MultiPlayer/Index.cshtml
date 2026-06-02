@@ -1,0 +1,106 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Многопользовательская игра</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7e05 0%, #ffb347 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .lobby-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 40px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #ff8c00;
+            margin-bottom: 30px;
+        }
+        .btn-lobby {
+            background: #ff8c00;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 80%;
+        }
+        .btn-lobby:hover {
+            background: #e07c00;
+        }
+        .btn-outline {
+            background: white;
+            border: 2px solid #ff8c00;
+            color: #ff8c00;
+        }
+        .btn-outline:hover {
+            background: #ff8c00;
+            color: white;
+        }
+        input {
+            padding: 10px;
+            border-radius: 50px;
+            border: 2px solid #ff8c00;
+            width: 80%;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .error-message {
+            color: red;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="lobby-container">
+        <h1>🏆 ИГРА С ДРУЗЬЯМИ 🏆</h1>
+        <button id="createRoomBtn" class="btn-lobby">Создать новую комнату</button>
+        <div style="margin: 15px 0;">— или —</div>
+        <button id="joinRoomBtn" class="btn-lobby btn-outline">Присоединиться по коду</button>
+        <div id="joinPanel" style="display:none; margin-top: 20px;">
+            <input type="text" id="roomCodeInput" placeholder="Введите код комнаты" maxlength="5" autocomplete="off" />
+            <button id="submitJoinBtn" class="btn-lobby" style="width: auto; padding: 8px 20px;">Войти</button>
+        </div>
+        <div id="errorMsg" class="error-message"></div>
+    </div>
+
+    <script>
+        document.getElementById('createRoomBtn').addEventListener('click', function() {
+            // Перенаправляем на контроллер для создания комнаты
+            window.location.href = '/MultiPlayer/CreateRoom';
+        });
+
+        document.getElementById('joinRoomBtn').addEventListener('click', function() {
+            document.getElementById('joinPanel').style.display = 'block';
+        });
+
+        document.getElementById('submitJoinBtn').addEventListener('click', function() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim().toUpperCase();
+            if (roomCode.length === 5) {
+                window.location.href = `/MultiPlayer/JoinRoom?roomCode=${roomCode}`;
+            } else {
+                document.getElementById('errorMsg').innerText = 'Код должен содержать 5 символов (цифры и буквы)';
+            }
+        });
+    </script>
+</body>
+</html>

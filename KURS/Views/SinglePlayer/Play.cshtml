@@ -1,0 +1,438 @@
+﻿@using Millioner.Models
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Игра - Кто хочет стать миллионером?</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7e05 0%, #ffb347 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+        .white-panel {
+            background: white;
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .earned {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ff8c00;
+        }
+        .safe-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .question-price {
+            background: #ff8c00;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 40px;
+            font-weight: bold;
+        }
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .answers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .answer-btn {
+            background: white;
+            border: 2px solid #ff8c00;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 1.2rem;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .answer-btn:hover {
+            background: #ff8c00;
+            color: white;
+            transform: scale(1.02);
+        }
+        .answer-btn.correct {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white;
+        }
+        .answer-btn.wrong {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white;
+        }
+        .answer-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .timer {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .timer-value {
+            background: #343a40;
+            color: white;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 60px;
+            font-family: monospace;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+        }
+        .hints-panel {
+            position: absolute;
+            right: -60px;
+            top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .hint-item {
+            background: white;
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            width: 70px;
+        }
+        .hint-item:hover { transform: scale(1.05); }
+        .hint-item.disabled { opacity: 0.5; text-decoration: line-through; pointer-events: none; }
+        .hint-icon { font-size: 2rem; }
+        .hint-text { font-size: 0.8rem; font-weight: bold; }
+        .hint-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 2000;
+        }
+        .hint-modal-content {
+            background: white; border-radius: 30px; padding: 50px; text-align: center;
+            max-width: 500px; position: relative;
+        }
+        .close-hint { position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer; }
+        .overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .gameover-card {
+            background: white; border-radius: 40px; padding: 40px; text-align: center;
+            max-width: 500px;
+        }
+        .btn-home {
+            background: #ff8c00; border: none; padding: 10px 20px; border-radius: 30px;
+            color: white; cursor: pointer; margin-top: 20px;
+        }
+        @@media (max-width: 1200px) {
+            .hints-panel { right: -20px; }
+            .hint-item { width: 60px; }
+            .hint-icon { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="white-panel">
+        <div class="hints-panel">
+            <div class="hint-item" id="hint5050"><div class="hint-icon">🎲</div><div class="hint-text">50:50</div></div>
+            <div class="hint-item" id="hintPhone"><div class="hint-icon">📞</div><div class="hint-text">Звонок другу</div></div>
+            <div class="hint-item" id="hintAudience"><div class="hint-icon">👥</div><div class="hint-text">Помощь зала</div></div>
+        </div>
+
+        <div class="info-panel">
+            <span>🏆 Текущий выигрыш: <span class="earned" id="totalEarned">@ViewBag.TotalEarned</span></span>
+                @if (ViewBag.HasSafe)
+                {
+                    <span class="safe-badge">Несгораемая сумма: @ViewBag.SafeAmount</span>
+                }
+        </div>
+
+        <div class="question-header">
+            <span class="question-price">💰 <span id="questionPrice">@ViewBag.CurrentPrize</span> баллов</span>
+            <span>Вопрос <span id="questionNumber">@ViewBag.QuestionNumber</span> из @ViewBag.TotalQuestions</span>
+        </div>
+
+        <div class="question-text" id="questionText">@ViewBag.Question.Text</div>
+
+        <div class="timer">⏱️ <span class="timer-value" id="timer">30</span> сек</div>
+
+        <div class="answers-list" id="answersList">
+                @{
+                    var answers = new Dictionary<char, string>
+                {
+                    {'A', ViewBag.Question.AnswerA},
+                    {'B', ViewBag.Question.AnswerB},
+                    {'C', ViewBag.Question.AnswerC},
+                    {'D', ViewBag.Question.AnswerD}
+                };
+                }
+                @foreach (var ans in answers)
+                {
+                    <div class="answer-btn" data-answer="@ans.Key"><strong>@ans.Key.</strong> @ans.Value</div>
+                }
+        </div>
+    </div>
+    <footer>Кто хочет стать миллионером? | Одиночная игра</footer>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let timeLeft = 30;
+    let timerId = null;
+    let answerLocked = false;
+    let currentQuestionId = @ViewBag.Question.Id;
+    let correctAnswer = '@ViewBag.Question.CorrectAnswer';
+    let totalEarnedSpan = document.getElementById('totalEarned');
+    let currentTotalEarned = @ViewBag.TotalEarned;
+    let highlightTimeout = null;
+    let hintsUsed = { fifty: false, phone: false, audience: false };
+
+    const timerElement = document.getElementById('timer');
+    const answerButtons = document.querySelectorAll('.answer-btn');
+
+    function use5050() {
+        if (hintsUsed.fifty) return;
+        hintsUsed.fifty = true;
+        document.getElementById('hint5050').classList.add('disabled');
+        let wrongAnswers = [];
+        answerButtons.forEach(btn => {
+            if (btn.getAttribute('data-answer') !== correctAnswer) wrongAnswers.push(btn);
+        });
+        for (let i = wrongAnswers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [wrongAnswers[i], wrongAnswers[j]] = [wrongAnswers[j], wrongAnswers[i]];
+        }
+        let toDisable = wrongAnswers.slice(0, 2);
+        toDisable.forEach(btn => {
+            btn.classList.add('disabled');
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+        });
+    }
+
+    function usePhoneFriend() {
+        if (hintsUsed.phone) return;
+        hintsUsed.phone = true;
+        document.getElementById('hintPhone').classList.add('disabled');
+        let isCorrect = Math.random() < 0.7;
+        let suggestedAnswer;
+        if (isCorrect) suggestedAnswer = correctAnswer;
+        else {
+            let wrong = [];
+            answerButtons.forEach(btn => {
+                let ans = btn.getAttribute('data-answer');
+                if (ans !== correctAnswer) wrong.push(ans);
+            });
+            suggestedAnswer = wrong[Math.floor(Math.random() * wrong.length)];
+        }
+        showHintModal(`Друг думает, что правильный ответ — ${suggestedAnswer}.`, false);
+    }
+
+    function useAudienceHelp() {
+        if (hintsUsed.audience) return;
+        hintsUsed.audience = true;
+        document.getElementById('hintAudience').classList.add('disabled');
+        let percentages = { A: 0, B: 0, C: 0, D: 0 };
+        percentages[correctAnswer] = 50;
+        let others = ['A','B','C','D'].filter(a => a !== correctAnswer);
+        for (let i = others.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [others[i], others[j]] = [others[j], others[i]];
+        }
+        percentages[others[0]] = 20;
+        percentages[others[1]] = 20;
+        percentages[others[2]] = 10;
+        let content = `<div style="display:flex; gap:20px; justify-content:center;">`;
+        for (let [letter, percent] of Object.entries(percentages)) {
+            content += `<div style="text-align:center;"><div style="height:${percent*2}px; width:40px; background:#ff8c00; border-radius:10px;"></div><div>${letter}</div><div>${percent}%</div></div>`;
+        }
+        content += `</div>`;
+        showHintModal(content, true);
+    }
+
+    function showHintModal(contentHtml, isHtml) {
+        const modal = document.createElement('div');
+        modal.className = 'hint-modal';
+        modal.innerHTML = `<div class="hint-modal-content"><span class="close-hint">&times;</span>${isHtml ? contentHtml : `<p>${contentHtml}</p>`}</div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-hint').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    }
+
+    function startTimer() {
+        if (timerId) clearInterval(timerId);
+        timeLeft = 30;
+        timerElement.innerText = timeLeft;
+        timerId = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 0) {
+                clearInterval(timerId);
+                submitAnswer(null);
+            } else {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+    function stopTimer() {
+    if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+    }
+}
+
+ function submitAnswer(answer) {
+    if (answerLocked) return;
+    answerLocked = true;
+    stopTimer();
+
+    answerButtons.forEach(btn => btn.classList.add('disabled'));
+
+    // Данные для отправки
+    const payload = {
+        questionId: currentQuestionId,
+        selectedAnswer: answer,
+        timeout: false
+    };
+    // Если вызвано из таймера, передаём timeout: true
+    if (answer === null) {
+        payload.selectedAnswer = null;
+        payload.timeout = true;
+    }
+
+
+    fetch('/SinglePlayer/Answer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+            // Токен пока не отправляем, чтобы не усложнять
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP ошибка ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+       
+        // Обработка ответа
+        if (data.error) {
+            alert(data.error);
+            window.location.reload();
+            return;
+        }
+        if (data.redirect) {
+            window.location.href = data.url;
+            return;
+        }
+
+        // Подсветка
+        answerButtons.forEach(btn => {
+            const ans = btn.getAttribute('data-answer');
+            if (ans === data.correctAnswer) btn.classList.add('correct');
+            if (ans === data.selectedAnswer && !data.correct) btn.classList.add('wrong');
+        });
+
+        if (data.correct) {
+            currentTotalEarned = data.totalEarned;
+            totalEarnedSpan.innerText = currentTotalEarned;
+        }
+
+        if (data.gameOver) {
+            if (highlightTimeout) clearTimeout(highlightTimeout);
+            highlightTimeout = setTimeout(() => showGameOver(data.win, data.earnedInGame, data.totalUserScore), 2000);
+        } else {
+            if (highlightTimeout) clearTimeout(highlightTimeout);
+            highlightTimeout = setTimeout(() => window.location.reload(), 2000);
+        }
+    })
+    .catch(err => {
+        console.error("Ошибка fetch:", err);
+        alert("Ошибка при отправке ответа: " + err.message);
+        window.location.reload();
+    });
+}
+
+    function showGameOver(win, earnedInGame, totalUserScore) {
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `
+            <div class="gameover-card">
+                <h2>${win ? '🏆 ПОЗДРАВЛЯЕМ! 🏆' : '😞 ИГРА ОКОНЧЕНА'}</h2>
+                <p>${win ? 'Вы ответили на все 15 вопросов и стали миллионером!' : 'К сожалению, вы проиграли.'}</p>
+                <p>Ваш выигрыш в этой игре: <strong>${earnedInGame}</strong> баллов</p>
+                <p>Общий счёт: <strong>${totalUserScore}</strong> баллов</p>
+                <button class="btn-home" onclick="window.location.href='/'">В главное меню</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    document.getElementById('hint5050').addEventListener('click', use5050);
+    document.getElementById('hintPhone').addEventListener('click', usePhoneFriend);
+    document.getElementById('hintAudience').addEventListener('click', useAudienceHelp);
+
+    answerButtons.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            if (answerLocked) return;
+            const answer = btn.getAttribute('data-answer');
+            submitAnswer(answer);
+        });
+    });
+
+    startTimer();
+</script>
+</body>
+</html>

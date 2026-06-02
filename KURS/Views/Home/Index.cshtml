@@ -1,0 +1,184 @@
+﻿@using Millioner.Models
+@model HomeViewModel
+
+@{
+    ViewData["Title"] = "Выбор режима";
+}
+<div class="game-home-container">
+    <div class="profile-card" id="profileCard">
+        <div class="avatar" id="avatarEditBtn" style="cursor:pointer;">
+            <img id="avatarImg" src="@Model.CurrentUser.AvatarPath" width="80" height="80" style="border-radius: 50%; object-fit: cover;" />
+        </div>
+        <div class="user-info">
+            <h3 id="userNameDisplay" style="cursor:pointer;">@Model.CurrentUser.UserName</h3>
+            <p>Общий счёт: <span id="totalScoreDisplay">@Model.CurrentUser.TotalScore</span> баллов</p>
+            <p>Сыграно игр: @Model.CurrentUser.GamesPlayed  &nbsp;&nbsp;&nbsp;&nbsp; Побед: @Model.CurrentUser.GamesWon</p>
+        </div>
+        <form asp-controller="Home" asp-action="Logout" method="post" style="margin-top: 10px; justify-content: end; align-items: end;">
+            <button type="submit" class="btn btn-danger">Выйти</button>
+        </form>
+    </div>
+
+    <div class="game-modes">
+        <a asp-controller="SinglePlayer" asp-action="Index" class="mode-btn">Одиночная игра</a>
+        <a asp-controller="MultiPlayer" asp-action="Index" class="mode-btn">Игра с друзьями</a>
+    </div>
+
+    <!-- Таблица лидеров -->
+    <div class="leaderboard-card">
+        <h3>🏆 Таблица лидеров (топ-10)</h3>
+        <table class="leaderboard-table">
+            <thead>
+                <tr><th>Аватар</th><th>Имя</th><th>Баллы</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var player in Model.Leaderboard)
+                {
+                            <tr>
+                                <td><img src="@player.AvatarPath" width="40" height="40" style="border-radius: 50%; object-fit: cover;" /></td>
+                                <td>@player.UserName</td>
+                                <td>@player.TotalScore</td>
+                            </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .game-home-container {
+        max-width: 800px;
+        margin: 50px auto;
+        text-align: center;
+    }
+    .profile-card {
+        background: white;
+        border-radius: 30px;
+        padding: 30px 110px 30px 30px;
+        margin-bottom: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+    }
+    .user-info h3 {
+        margin: 0 0 10px 0;
+        color: #ff8c00;
+    }
+    .mode-btn {
+        display: inline-block;
+        background: white;
+        border: 2px solid #ff8c00;
+        color: #ff8c00;
+        padding: 12px 24px;
+        margin: 10px;
+        border-radius: 40px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.2s;
+    }
+    .mode-btn:hover {
+        background: #ff8c00;
+        color: white;
+    }
+    .leaderboard-card {
+        background: white;
+        border-radius: 30px;
+        padding: 20px;
+        margin-top: 30px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 8px;
+        text-align: center;
+        border-bottom: 1px solid #ddd;
+    }
+    .leaderboard-table th {
+        background-color: #ff8c00;
+        color: white;
+    }
+</style>
+
+<!-- Модальное окно редактирования профиля (с выбором картинок) -->
+<div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:20px; padding:20px; width:350px; text-align:center;">
+        <h4>Редактировать профиль</h4>
+        <div>
+            <label>Имя:</label>
+            <input type="text" id="editUserName" value="@Model.CurrentUser.UserName" class="form-control" />
+        </div>
+        <div>
+            <label>Аватар:</label>
+            <div class="avatar-picker d-flex gap-2 justify-content-center mt-2">
+                @foreach (var avatar in new[] { "avatar1.png", "avatar2.png", "avatar3.png", "avatar4.png", "avatar5.png" })
+                {
+                    var avatarPath = "/images/avatars/" + avatar;
+                        <img src="@avatarPath" width="50" height="50" style="border-radius:50%; cursor:pointer; border:2px solid transparent;" class="avatar-option" data-path="@avatarPath" />
+                }
+            </div>
+            <input type="hidden" id="editAvatarPath" value="@Model.CurrentUser.AvatarPath" />
+        </div>
+        <button id="saveProfileBtn" class="btn btn-primary mt-3">Сохранить</button>
+        <button id="closeModalBtn" class="btn btn-secondary mt-3">Отмена</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#avatarEditBtn, #userNameDisplay').click(function() {
+            $('#editModal').css('display', 'flex');
+            var currentPath = $('#editAvatarPath').val();
+            $('.avatar-option').each(function() {
+                if ($(this).data('path') === currentPath) {
+                    $(this).css('border-color', '#ff8c00');
+                } else {
+                    $(this).css('border-color', 'transparent');
+                }
+            });
+        });
+
+        $('.avatar-option').click(function() {
+            $('.avatar-option').css('border-color', 'transparent');
+            $(this).css('border-color', '#ff8c00');
+            $('#editAvatarPath').val($(this).data('path'));
+        });
+
+        $('#saveProfileBtn').click(function() {
+            var newName = $('#editUserName').val().trim();
+            var newAvatarPath = $('#editAvatarPath').val();
+            $.ajax({
+                url: '@Url.Action("UpdateProfile", "Home")',
+                type: 'POST',
+                data: {
+                    userName: newName,
+                    avatarPath: newAvatarPath,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#userNameDisplay').text(response.userName);
+                        $('#avatarImg').attr('src', response.avatarPath);
+                        $('#totalScoreDisplay').text(response.totalScore);
+                        $('#editModal').hide();
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Ошибка при сохранении');
+                }
+            });
+        });
+
+        $('#closeModalBtn').click(function() {
+            $('#editModal').hide();
+        });
+    });
+</script>
+@Html.AntiForgeryToken()

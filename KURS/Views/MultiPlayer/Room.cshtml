@@ -1,0 +1,591 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Многопользовательская игра</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7e05 0%, #ffb347 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .game-wrapper {
+            display: flex;
+            gap: 25px;
+            max-width: 1300px;
+            width: 100%;
+            align-items: stretch;
+        }
+        .players-sidebar {
+            background: white;
+            border-radius: 40px;
+            padding: 25px;
+            width: 280px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+        }
+        .players-sidebar h3 {
+            text-align: center;
+            color: #ff8c00;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .players-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .player-card {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 60px;
+            padding: 8px 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .player-card:hover {
+            background: #e9ecef;
+        }
+        .player-card img.avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            object-fit: cover;
+        }
+        .player-card .name { flex-grow: 1; font-weight: bold; }
+        .player-card .status { font-size: 1.2rem; }
+        .eliminated { opacity: 0.5; text-decoration: line-through; }
+        .central-panel {
+            flex-grow: 1;
+            background: white;
+            border-radius: 50px;
+            padding: 40px;
+            box-shadow: 0 20px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .room-code {
+            background: #ff8c00;
+            color: white;
+            display: inline-block;
+            padding: 10px 25px;
+            border-radius: 60px;
+            font-size: 1.6rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+        }
+        .lobby-players-list {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+        .lobby-players-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8f9fa;
+            margin: 12px 0;
+            padding: 10px 20px;
+            border-radius: 60px;
+            cursor: pointer;
+        }
+        .lobby-players-list li:hover { background: #e9ecef; }
+        .lobby-players-list li img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+        .start-btn {
+            background: #ff8c00;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            width: 80%;
+        }
+        .start-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .wait-message { font-size: 1.2rem; color: #666; }
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .question-text { font-size: 1.8rem; margin: 30px 0; }
+        .answers-list { display: flex; flex-direction: column; gap: 15px; }
+        .answer-btn {
+            background: white;
+            border: 2px solid #ff8c00;
+            border-radius: 60px;
+            padding: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .answer-btn:hover { background: #ff8c00; color: white; }
+        .answer-btn.correct {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white;
+        }
+        .answer-btn.wrong {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white;
+        }
+        .answer-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+        .timer { font-size: 2rem; font-weight: bold; margin: 20px 0; }
+        .overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .gameover-card {
+            background: white; border-radius: 40px; padding: 40px; text-align: center;
+            max-width: 500px;
+        }
+        .btn-home {
+            background: #ff8c00; border: none; padding: 10px 20px; border-radius: 30px;
+            color: white; cursor: pointer; margin-top: 20px;
+        }
+        .profile-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+            z-index: 2000;
+        }
+        .profile-modal-content {
+            background: white; border-radius: 40px; padding: 30px; text-align: center;
+            min-width: 300px;
+        }
+        .profile-modal-content img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+        .close-btn { float: right; font-size: 1.5rem; cursor: pointer; }
+        .hints-panel {
+            position: fixed;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 10;
+        }
+        .hint-item {
+            background: white;
+            border-radius: 20px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+            width: 70px;
+        }
+        .hint-item:hover { transform: scale(1.05); }
+        .hint-item.disabled { opacity: 0.5; text-decoration: line-through; pointer-events: none; }
+        .hint-icon { font-size: 2rem; }
+        .hint-text { font-size: 0.8rem; font-weight: bold; }
+        .hint-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+            z-index: 2000;
+        }
+        .hint-modal-content {
+            background: white; border-radius: 30px; padding:50px; text-align: center;
+            max-width: 500px; position: relative;
+        }
+        .close-hint { position: absolute; top: 10px; right: 10px; font-size: 1.5rem; cursor: pointer; }
+        @@media (max-width: 1200px) { .hints-panel { right: 20px; } .hint-item { width: 60px; } }
+    </style>
+</head>
+<body>
+<div class="game-wrapper">
+    <div class="players-sidebar">
+        <h3>🏅 Игроки</h3>
+        <div id="playersSidebarList" class="players-list"></div>
+    </div>
+    <div id="centralPanel" class="central-panel">
+        <div id="lobbyContent">
+            <h2>🏆 Комната ожидания</h2>
+            <div>Код комнаты: <span class="room-code" id="roomCode">@ViewBag.RoomCode</span></div>
+            <div id="lobbyPlayersList" class="lobby-players-list"></div>
+                @if (ViewBag.IsOwner)
+                {
+                        <button id="startGameBtn" class="start-btn">Начать игру</button>
+                }
+                else
+                {
+                        <div class="wait-message">Ожидаем начала игры...</div>
+                }
+        </div>
+        <div id="gameContent" style="display:none;">
+            <div class="info-panel">
+                <span>🏆 Текущий выигрыш: <strong id="currentScore">0</strong></span>
+                <span>💰 Вопрос на <span id="questionPrice">0</span> баллов</span>
+            </div>
+            <div id="safeAmountInfo" style="background: #f8f9fa; border-radius: 20px; padding: 8px 15px; margin-bottom: 10px; text-align: center;">
+                Несгораемая сумма: <span id="safeAmountValue">0</span> баллов
+            </div>
+            <div id="questionText" class="question-text">Загрузка вопроса...</div>
+            <div id="answersList" class="answers-list"></div>
+            <div class="timer">⏱️ <span id="timer">30</span> сек</div>
+        </div>
+    </div>
+    <div id="hintsPanel" class="hints-panel" style="display: none;">
+        <div class="hint-item" id="hint5050"><div class="hint-icon">🎲</div><div class="hint-text">50:50</div></div>
+        <div class="hint-item" id="hintPhone"><div class="hint-icon">📞</div><div class="hint-text">Звонок другу</div></div>
+        <div class="hint-item" id="hintAudience"><div class="hint-icon">👥</div><div class="hint-text">Помощь зала</div></div>
+    </div>
+</div>
+
+<script>
+    let socket; // глобальная переменная
+    let roomCode = '@ViewBag.RoomCode';
+    let isOwner = @(ViewBag.IsOwner ? "true" : "false");
+    let currentQuestionId = 0, timerInterval = null, answerLocked = false;
+    let currentCorrectAnswer = '';
+    let lastSelectedAnswer = '';
+    let highlightTimeout = null;
+    let pendingQuestion = null;
+    let questionDelayTimeout = null;
+    let lastSafeAmount = 0;  // для отслеживания нового рубежа
+    let hintsUsed = { fifty: false, phone: false, audience: false };
+
+    function connect() {
+        const wsUrl = `ws://${location.host}/ws`;
+        socket = new WebSocket(wsUrl);
+        socket.onopen = () => {
+            console.log("WebSocket connected");
+            socket.send(JSON.stringify({ type: "joinRoom", roomCode: roomCode }));
+        };
+        socket.onmessage = (e) => {
+            const msg = JSON.parse(e.data);
+            console.log("Raw message:", msg);
+            switch (msg.type) {
+                case "playersUpdate":
+                    updateLeftSidebar(msg.players);
+                    updateLobbyList(msg.players);
+                    break;
+                case "gameStarted":
+                    document.getElementById('lobbyContent').style.display = 'none';
+                    document.getElementById('gameContent').style.display = 'block';
+                    document.getElementById('hintsPanel').style.display = 'flex';
+                    break;
+                case "newQuestion":
+                    if (questionDelayTimeout) clearTimeout(questionDelayTimeout);
+                    pendingQuestion = msg;
+                    questionDelayTimeout = setTimeout(() => {
+                        if (pendingQuestion) {
+                            displayQuestion(pendingQuestion);
+                            startTimer();
+                            pendingQuestion = null;
+                            questionDelayTimeout = null;
+                        }
+                    }, 2000);
+                    break;
+                case "answerResult":
+                    handleAnswerResult(msg);
+                    break;
+                case "gameOver":
+                console.log("gameOver received, winner:", msg.winner);
+                    showGameOver(msg.winner);
+                    break;
+                case "error":
+                    alert(msg.message);
+                    break;
+            }
+        };
+        socket.onclose = () => {
+            console.log("WebSocket closed, reconnecting...");
+            setTimeout(connect, 3000);
+        };
+    }
+
+    function updateLeftSidebar(players) {
+        const container = document.getElementById('playersSidebarList');
+        container.innerHTML = '';
+        players.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'player-card' + (p.IsAlive === true ? '' : ' eliminated');
+            div.setAttribute('data-userid', p.UserId);
+            div.innerHTML = `
+                <img src="${p.AvatarPath || '/images/avatars/avatar1.png'}" class="avatar-img" />
+                <span class="name">${p.UserName || 'Игрок'}</span>
+                <span class="status">${p.IsAlive ? '✅' : '❌'}</span>
+            `;
+            div.addEventListener('click', () => showProfile(p.UserId));
+            container.appendChild(div);
+        });
+    }
+
+    function updateLobbyList(players) {
+        const div = document.getElementById('lobbyPlayersList');
+        div.innerHTML = '';
+        players.forEach(p => {
+            const li = document.createElement('li');
+            li.setAttribute('data-userid', p.UserId);
+            li.innerHTML = `
+                <img src="${p.AvatarPath || '/images/avatars/avatar1.png'}" style="width:35px; height:35px; border-radius:50%; margin-right:12px;" />
+                <span class="player-name">${p.UserName || 'Игрок'}</span>
+                <span class="player-status">${p.IsAlive ? '✅' : '❌'}</span>
+            `;
+            li.addEventListener('click', () => showProfile(p.UserId));
+            div.appendChild(li);
+        });
+    }
+
+    function showProfile(userId) {
+        fetch(`/Profile/GetUserInfo?userId=${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                const modal = document.createElement('div');
+                modal.className = 'profile-modal';
+                modal.innerHTML = `
+                    <div class="profile-modal-content">
+                        <span class="close-btn">&times;</span>
+                        <img src="${data.avatarPath}" alt="avatar" />
+                        <div class="profile-name">${data.userName}</div>
+                        <div>🏆 Общий счёт: ${data.totalScore} баллов</div>
+                        <div>📊 Сыграно: ${data.gamesPlayed} | Побед: ${data.gamesWon}</div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                modal.querySelector('.close-btn').onclick = () => modal.remove();
+                modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            });
+    }
+
+    function displayQuestion(q) {
+        currentQuestionId = q.questionId;
+        currentCorrectAnswer = q.correctAnswer;
+        document.getElementById('questionText').innerText = q.text;
+        document.getElementById('questionPrice').innerText = q.price;
+        document.getElementById('safeAmountValue').innerText = q.safeAmount || 0;
+        if (q.safeAmount > 0 && q.safeAmount !== lastSafeAmount) {
+            lastSafeAmount = q.safeAmount;
+            showToast(`Несгораемая сумма: ${q.safeAmount} баллов!`);
+        }
+        const answersDiv = document.getElementById('answersList');
+        answersDiv.innerHTML = '';
+        const letters = ['A','B','C','D'];
+        q.answers.forEach((ans, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'answer-btn';
+            btn.innerText = `${letters[idx]}. ${ans}`;
+            btn.setAttribute('data-answer', letters[idx]);
+            btn.onclick = () => submitAnswer(letters[idx]);
+            answersDiv.appendChild(btn);
+        });
+        answerLocked = false;
+        document.querySelectorAll('.answer-btn').forEach(btn => btn.classList.remove('correct', 'wrong', 'disabled'));
+    }
+
+    function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
+        let timeLeft = 30;
+        const span = document.getElementById('timer');
+        span.innerText = timeLeft;
+        timerInterval = setInterval(() => {
+            if (answerLocked) return;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                submitAnswer(null);
+            } else {
+                timeLeft--;
+                span.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+
+    function submitAnswer(answer) {
+        if (answerLocked) return;
+        answerLocked = true;
+        if (timerInterval) clearInterval(timerInterval);
+        lastSelectedAnswer = answer || '';
+        socket.send(JSON.stringify({
+            type: "answer",
+            questionId: currentQuestionId,
+            answer: answer || ""
+        }));
+    }
+
+    function handleAnswerResult(res) {
+        const buttons = document.querySelectorAll('.answer-btn');
+        buttons.forEach(btn => btn.classList.add('disabled'));
+        // Подсветка правильного ответа зелёным
+        buttons.forEach(btn => {
+            if (btn.getAttribute('data-answer') === res.correctAnswer) {
+                btn.classList.add('correct');
+            }
+        });
+        // Если ответ неверный, подсветить выбранный ответ красным
+        if (!res.correct && res.selectedAnswer) {
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-answer') === res.selectedAnswer) {
+                    btn.classList.add('wrong');
+                }
+            });
+        }
+        // Обновляем счёт при правильном ответе
+        if (res.correct) {
+            let cur = parseInt(document.getElementById('currentScore').innerText);
+            document.getElementById('currentScore').innerText = cur + res.earned;
+        }
+        // Если игрок выбыл
+        if (res.eliminated) {
+            setTimeout(() => {
+                showLoseWindow(res.safeEarned);
+            }, 2000);
+        }
+    }
+
+    function showLoseWindow(earnedAmount) {
+        if (timerInterval) clearInterval(timerInterval);
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `
+            <div class="gameover-card">
+                <h2>😞 ВЫ ПРОИГРАЛИ</h2>
+                <p>К сожалению, вы ответили неправильно.</p>
+                <p>Ваш выигрыш: <strong>${earnedAmount}</strong> баллов</p>
+                <button class="btn-home" onclick="window.location.href='/'">Вернуться на главную</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    function showGameOver(winner) {
+        if (timerInterval) clearInterval(timerInterval);
+        const overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        overlay.innerHTML = `
+            <div class="gameover-card">
+                <h2>${winner === '@User.Identity.Name' ? '🏆 ПОБЕДА! 🏆' : 'Игра окончена'}</h2>
+                <p>Победитель: ${winner}</p>
+                <p>Ваш счёт: ${document.getElementById('currentScore').innerText}</p>
+                <button class="btn-home" onclick="window.location.href='/'">Вернуться на главную</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    function showToast(message) {
+        const toast = document.createElement('div');
+        toast.innerText = message;
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.left = '50%';
+        toast.style.transform = 'translateX(-50%)';
+        toast.style.backgroundColor = '#28a745';
+        toast.style.color = 'white';
+        toast.style.padding = '10px 20px';
+        toast.style.borderRadius = '30px';
+        toast.style.zIndex = '3000';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Подсказки
+    function use5050() {
+        if (hintsUsed.fifty) return;
+        hintsUsed.fifty = true;
+        document.getElementById('hint5050').classList.add('disabled');
+        let wrongAnswers = [];
+        const btns = document.querySelectorAll('.answer-btn');
+        btns.forEach(btn => {
+            if (btn.getAttribute('data-answer') !== currentCorrectAnswer) wrongAnswers.push(btn);
+        });
+        for (let i = wrongAnswers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [wrongAnswers[i], wrongAnswers[j]] = [wrongAnswers[j], wrongAnswers[i]];
+        }
+        let toDisable = wrongAnswers.slice(0, 2);
+        toDisable.forEach(btn => {
+            btn.classList.add('disabled');
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.5';
+        });
+    }
+
+    function usePhoneFriend() {
+        if (hintsUsed.phone) return;
+        hintsUsed.phone = true;
+        document.getElementById('hintPhone').classList.add('disabled');
+        let isCorrect = Math.random() < 0.7;
+        let suggestedAnswer;
+        if (isCorrect) suggestedAnswer = currentCorrectAnswer;
+        else {
+            let wrong = [];
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                if (btn.getAttribute('data-answer') !== currentCorrectAnswer) wrong.push(btn.getAttribute('data-answer'));
+            });
+            suggestedAnswer = wrong[Math.floor(Math.random() * wrong.length)];
+        }
+        showHintModal(`Друг думает, что правильный ответ — ${suggestedAnswer}.`, false);
+    }
+
+    function useAudienceHelp() {
+        if (hintsUsed.audience) return;
+        hintsUsed.audience = true;
+        document.getElementById('hintAudience').classList.add('disabled');
+        let percentages = { A: 0, B: 0, C: 0, D: 0 };
+        percentages[currentCorrectAnswer] = 50;
+        let others = ['A','B','C','D'].filter(a => a !== currentCorrectAnswer);
+        for (let i = others.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [others[i], others[j]] = [others[j], others[i]]; }
+        percentages[others[0]] = 20;
+        percentages[others[1]] = 20;
+        percentages[others[2]] = 10;
+        let content = `<div style="display:flex; gap:20px; justify-content:center;">`;
+        for (let [letter, percent] of Object.entries(percentages)) {
+            content += `<div style="text-align:center;"><div style="height:${percent*2}px; width:40px; background:#ff8c00; border-radius:10px;"></div><div>${letter}</div><div>${percent}%</div></div>`;
+        }
+        content += `</div>`;
+        showHintModal(content, true);
+    }
+
+    function showHintModal(contentHtml, isHtml) {
+        const modal = document.createElement('div');
+        modal.className = 'hint-modal';
+        modal.innerHTML = `<div class="hint-modal-content"><span class="close-hint">&times;</span>${isHtml ? contentHtml : `<p>${contentHtml}</p>`}</div>`;
+        document.body.appendChild(modal);
+        modal.querySelector('.close-hint').onclick = () => modal.remove();
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    }
+
+    document.getElementById('hint5050').addEventListener('click', use5050);
+    document.getElementById('hintPhone').addEventListener('click', usePhoneFriend);
+    document.getElementById('hintAudience').addEventListener('click', useAudienceHelp);
+    document.getElementById('startGameBtn')?.addEventListener('click', () => {
+        socket.send(JSON.stringify({ type: "startGame" }));
+        document.getElementById('startGameBtn').disabled = true;
+        document.getElementById('startGameBtn').innerText = "Игра начинается...";
+    });
+
+    connect();
+</script>
+</body>
+</html>

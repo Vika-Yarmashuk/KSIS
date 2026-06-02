@@ -1,0 +1,89 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Игра окончена</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #ff7e05 0%, #ffb347 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .result-card {
+            background: white;
+            border-radius: 40px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .result-card h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        .win {
+            color: #28a745;
+        }
+        .lose {
+            color: #dc3545;
+        }
+        .earned {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .total-score {
+            font-size: 1.2rem;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 30px;
+        }
+        .btn-home {
+            margin-top: 30px;
+            background: #ff8c00;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-home:hover {
+            background: #e07c00;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-card">
+        @if (ViewBag.Win)
+        {
+                <h1 class="win">🏆 ПОЗДРАВЛЯЕМ! 🏆</h1>
+                <p>Вы ответили на все 15 вопросов и стали миллионером!</p>
+        }
+        else
+        {
+                <h1 class="lose">😞 ИГРА ОКОНЧЕНА</h1>
+                <p>К сожалению, вы проиграли.</p>
+        }
+        <div class="earned">
+            Ваш выигрыш в этой игре: <strong>@ViewBag.EarnedInGame</strong> баллов
+        </div>
+        <div class="total-score">
+            🌟 Общий счёт игрока: <strong>@ViewBag.TotalUserScore</strong> баллов
+        </div>
+        <a href="/" class="btn-home">В главное меню</a>
+    </div>
+</body>
+</html>
