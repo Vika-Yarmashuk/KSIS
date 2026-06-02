@@ -1,0 +1,136 @@
+/* Игровой стиль "Кто хочет стать миллионером?" */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Roboto:wght@300;400&display=swap');
+
+:root {
+    --gold: #d4af37;
+    --gold-light: #f9e47a;
+    --gold-dark: #b8860b;
+    --dark-blue: #0a1c3a;
+    --med-blue: #123456;
+    --light-bg: #f8f4e8;
+}
+
+body {
+    background: linear-gradient(135deg, #ff7e05 0%, #f9e47a 100%);
+    font-family: 'Roboto', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+   
+
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Карточка в стиле "кубок" */
+.card {
+    background: white;
+    border: none;
+    border-radius: 32px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.card-header {
+    background: #ff8c00;
+    color: white;
+    border-radius: 32px 32px 0 0 !important;
+}
+
+   
+
+.btn-gold {
+    background: #ff8c00;
+    box-shadow: 0 4px 0 #cc7000;
+    color: white;
+}
+
+    .btn-gold:hover {
+        background: #ff9e2c;
+        color: white;
+    }
+
+.form-control {
+    background: #fff5e6;
+    border: 1px solid var(--gold);
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+
+    .form-control:focus {
+        border-color: var(--gold-dark);
+        box-shadow: 0 0 0 0.2rem rgba(212, 175, 55, 0.25);
+    }
+
+/* Аватар-смайлики в виде больших игровых фишек */
+.emoji-avatar {
+    font-size: 3rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    cursor: pointer;
+}
+
+    .emoji-avatar.selected {
+        transform: scale(1.2);
+        text-shadow: 0 0 8px gold;
+    }
+
+.form-check-label {
+    font-size: 2rem;
+}
+
+.form-check-input:checked + .form-check-label {
+    text-shadow: 0 0 10px orange;
+}
+
+/* Ссылки в стиле игры */
+.text-gold {
+    color: var(--gold-dark);
+    font-weight: bold;
+    text-decoration: none;
+    border-bottom: 1px dashed;
+}
+
+    .text-gold:hover {
+        color: var(--gold);
+    }
+
+/* Анимация появления */
+.card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.btn-outline-register {
+    background-color: white;
+    border: 2px solid #ff8c00;
+    color: #ff8c00;
+    padding: 8px 24px;
+    margin: 0 0 15px;
+    border-radius: 30px;
+    font-weight: bold;
+    transition: 0.2s;
+    text-decoration: none;
+    display: inline-block;
+
+}
+
+    .btn-outline-register:hover {
+        background-color: #ff8c00;
+        color: white;
+        border-color: #ff8c00;
+    }
